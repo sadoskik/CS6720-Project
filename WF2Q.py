@@ -2,7 +2,7 @@ import sys
 import random
 import Packet 
 
-N = 3 #number of queues
+N = 4 #number of queues
 GPS_time = 0
 Packet.startTime = GPS_time
 Packet.ports = N
@@ -77,3 +77,6 @@ while not empty():
     send()
 
 print(lastVirFinish)
+
+def process(trans):
+    

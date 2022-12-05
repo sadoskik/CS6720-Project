@@ -3,58 +3,57 @@ import time
 import random
 import Packet
 
-N = 3 #number of queues
-startTime = time.time()
-Packet.startTime = startTime
-Packet.ports = N
-queues = []
-lastVirFinish = []
-weights = []
-R = [0]*N
-for x in range(N):
-    queues.append([])
-    lastVirFinish.append(startTime)
-    weights.append(random.randint(1,5))
-    
-for x in range(N):
-    R[x] = weights[x]*weights[x] / (sum(weights))
+class WFQ:
+    def __init__(self):
+        self.N = 4
+        startTime = time.time()
+        Packet.startTime = startTime
+        Packet.ports = N
+        self.queues = []
+        self.lastVirFinish = [0,0,0,0]
+        self.weights = [2,3,4,3]
+        self.updateR()
+    def updateR(self):    
+        for x in range(self.N):
+            self.R[x] = self.weights[x] / (sum(self.weights))
 
-def receive(packet):
-    queueNum = chooseQueue(packet)
-    queues[queueNum].append(packet)
-    updateTime(packet, queueNum)
+    def receive(self, packet):
+        queueNum = self.chooseQueue(packet)
+        self.queues[queueNum].append(packet)
+        self.updateTime(packet, queueNum)
 
 
-def selectQueue():
-    i = 0
-    minVirFinish = sys.maxsize
-    queueNum = -1
-    while i < len(queues):
-        queue = queues[i]
-        print("Queue:", i)
-        print(queue)
-        if len(queue) != 0 and queue[-1].virFinish < minVirFinish:
-            minVirFinish = queue[-1].virFinish
-            queueNum = i
-        i += 1
-    return queueNum
+    def selectQueue(self):
+        i = 0
+        minVirFinish = sys.maxsize
+        queueNum = -1
+        while i < len(self.queues):
+            queue = self.queues[i]
+            print("Queue:", i)
+            print(queue)
+            if len(queue) != 0 and queue[-1].virFinish < minVirFinish:
+                minVirFinish = queue[-1].virFinish
+                queueNum = i
+            i += 1
+        return queueNum
 
-def updateTime(packet, queueNum):
-    virStart = max(packet.time, lastVirFinish[queueNum])
-    
-    packet.virFinish =  virStart + packet.size/R[queueNum]
-    lastVirFinish[queueNum] = packet.virFinish
+    def updateTime(self, packet, queueNum):
+        nonEmpty = len([x for x in len(self.queues) != 0])
+        virStart = max(packet.time/nonEmpty, self.lastVirFinish[queueNum])
+        
+        packet.virFinish =  virStart + packet.size/self.R[queueNum]
+        self.lastVirFinish[queueNum] = packet.virFinish
 
-def send():
-    queueNum = selectQueue()
-    if queueNum == -1:
-        print("Bad queue")
-        exit()
-    packet = queues[queueNum].pop()
-    return packet
+    def send():
+        queueNum = selectQueue()
+        if queueNum == -1:
+            print("Bad queue")
+            exit()
+        packet = queues[queueNum].pop()
+        return packet
 
-def chooseQueue(packet):
-    return packet.src
+    def chooseQueue(packet):
+        return packet.src
 
 
 
