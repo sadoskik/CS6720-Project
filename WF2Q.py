@@ -1,8 +1,11 @@
 import sys
 import random
+import Packet 
 
 N = 3 #number of queues
 GPS_time = 0
+Packet.startTime = GPS_time
+Packet.ports = N
 queues = []
 lastVirFinish = []
 weights = []
@@ -57,19 +60,6 @@ def send():
 def chooseQueue(packet):
     return packet.dst
 
-
-class Packet:
-    startTimes = [-1]*3
-    def __init__(self, dst):
-        self.size = random.randint(1,20)
-        self.virFinish = None
-        self.dst = dst
-        self.time = Packet.startTimes[dst]
-        Packet.startTimes[dst] += self.size
-    def __str__(self):
-        return "<Packet(" + ", ".join([str(self.size), str(self.time), str(self.dst), str(self.virFinish)]) + ")>"
-    def __repr__(self) -> str:
-        return self.__str__()
 
 
 transmission = [Packet(random.randint(0,N-1)) for _ in range(100)]

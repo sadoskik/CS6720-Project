@@ -1,8 +1,10 @@
 import sys
 import random
 import time
-
+import Packet
 N = 3 #number of queues
+Packet.startTime = 0
+Packet.ports = N
 queues = [[]]*N
 weights = []
 for x in range(N):
@@ -16,18 +18,6 @@ def chooseQueue(packet):
     return packet.dst
 
 
-class Packet:
-    lastTime = time.time()
-    def __init__(self, startTime):
-        self.size = random.randint(1,20)
-        self.virFinish = None
-        self.dst = random.randint(0,N-1)
-        self.time = Packet.lastTime + random.random() * 1
-        Packet.lastTime = self.time
-    def __str__(self):
-        return "<Packet(" + ", ".join([str(self.size), str(self.virFinish), str(self.dst)]) + ")>"
-    def __repr__(self) -> str:
-        return self.__str__()
 
 
 
