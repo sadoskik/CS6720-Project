@@ -4,15 +4,29 @@ import WFQ
 import WF2Q
 import WRR
 
-wfq = WFQ.WFQ()
-wfq.process()
-for _ in range(1000):
-    ports = [[]]*4
-    for x in range(4):
-        ports[x] = [Packet() for x in range(randint(200, 500))]
-        Packet.Packet.startTime = 0
+def main():
+    iter = 1000
+    for _ in range(iter):
+        total_packets = [[]]*4
+        #initialize transmission packets
+        for x in range(4):
+            total_packets[x] = [Packet.Packet(src = x) for _ in range(randint(200, 500))]
+            Packet.Packet.startTime = 0
+        
+        last_packets = [total_packets[x][-1] for x in range(4)]
+        final_t = max(last_packets, key = lambda x : x.time + x.size)
 
-while (1):
-    for inputPort in ports:
-        WFQ.enqueue(inputPort.pop())
-    WFQ.process()
+        wfq = WFQ.WFQ()
+
+        for t in range(final_t):
+            for packets in total_packets:
+                curr_packet = packets[0]
+                if curr_packet.time <= t:
+                    wfq.receive(packets.pop(0))
+            wfq.process(t)
+        
+        print(wfq.metrics)
+        
+        
+if __name__ == 'main':
+    main()
