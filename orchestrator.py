@@ -6,14 +6,14 @@ import WFQ
 
 def main():
     iter = 10
-    metric = {'droppedPackets':0, 'receivedBytes':0, 'sentBytes':0, 'latency':0}
+    metric = {'droppedPackets':0, 'receivedBytes':0, 'sentBytes':0, 'latency':[0]*4}
     for _ in range(iter):
         total_packets = [[]]*4
         #initialize transmission packets
         for x in range(4):
             total_packets[x] = [Packet.Packet(src = x) for _ in range(randint(200, 500))]
             Packet.Packet.startTime = 0
-        num_packets = sum([len(x) for x in total_packets])
+        num_packets = [len(x) for x in total_packets]
         wfq = WFQ.WFQ()
         t = 0
         
@@ -26,13 +26,20 @@ def main():
                     wfq.receive(packets.pop(0))
             wfq.process(t)
             t += 1
-        for key, val in wfq.metrics.items():
-            if key == 'latency':
-                metric[key] += val/num_packets
-            else:
-                metric[key] += val
-    for key, val in metric:
-        metric[key] = val/iter
+        for x in range(4):
+            metric["latency"][x] += wfq.metrics["latency"][x] / num_packets[x]
+        
+        for key in wfq.metrics:
+            if(key == "latency"):
+                continue
+            metric[key] += wfq.metrics[key]
+        print(wfq.metrics)
+    for key in metric:
+        if(key == "latency"):
+            continue
+        metric[key] /= iter
+    for x in range(4):
+        metric["latency"][x] /= iter
     print(metric)
 
         

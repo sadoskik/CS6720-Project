@@ -6,7 +6,7 @@ import Packet
 class WFQ:
     def __init__(self):
         self.N = 4
-        self.maxQueueSize = 10000
+        self.maxQueueSize = 1024
         startTime = time.time()
         Packet.startTime = startTime
         Packet.ports = self.N
@@ -25,7 +25,7 @@ class WFQ:
             "droppedPackets": 0,
             "receivedBytes": 0,
             "sentBytes": 0,
-            "latency": 0
+            "latency": [0]*4
         }
 
     def receive(self, packet):
@@ -60,12 +60,14 @@ class WFQ:
     def send(self):
         queueNum = self.selectQueue()
         if queueNum == -1:
-            print("Bad queue")
+            #print("Bad queue")
             return
+        if queueNum != 0:
+            print("queueNum:", queueNum)
         packet = self.queues[queueNum].pop(0)
         self.currentPacketFinish = packet.size + self.time
         self.metrics["sentBytes"] += packet.size
-        self.metrics["latency"] += self.time - packet.time
+        self.metrics["latency"][queueNum] += self.time - packet.time
         return packet
 
     def chooseQueue(self, packet):
