@@ -6,21 +6,36 @@ import Packet
 class WFQ:
     def __init__(self):
         self.N = 4
+        self.maxQueueSize = 255
         startTime = time.time()
         Packet.startTime = startTime
-        Packet.ports = N
+        Packet.ports = self.N
+        self.currentPacketFinish = 0
         self.queues = []
         self.lastVirFinish = [0,0,0,0]
         self.weights = [2,3,4,3]
-        self.updateR()
-    def updateR(self):    
+        self.weightSum = sum(self.weights)
+        self.R = [0]*4
         for x in range(self.N):
             self.R[x] = self.weights[x] / (sum(self.weights))
+        self.time = 0
+        self.virtualTime = 0
+        self.lastRealTime = 0
+        self.metrics = {
+            "droppedPackets": 0,
+            "receivedBytes": 0,
+            "sentBytes": 0,
+
+        }
 
     def receive(self, packet):
         queueNum = self.chooseQueue(packet)
+        if(sum([x.size for x in self.queues[queueNum]]) + packet.size > self.maxQueueSize):
+            self.metrics["droppedPackets"] += 1
+            return
         self.queues[queueNum].append(packet)
         self.updateTime(packet, queueNum)
+        self.metrics["receivedBytes"] += packet.size
 
 
     def selectQueue(self):
@@ -31,47 +46,40 @@ class WFQ:
             queue = self.queues[i]
             print("Queue:", i)
             print(queue)
-            if len(queue) != 0 and queue[-1].virFinish < minVirFinish:
-                minVirFinish = queue[-1].virFinish
+            if len(queue) != 0 and queue[0].virFinish < minVirFinish:
+                minVirFinish = queue[0].virFinish
                 queueNum = i
             i += 1
         return queueNum
 
     def updateTime(self, packet, queueNum):
-        nonEmpty = len([x for x in len(self.queues) != 0])
-        virStart = max(packet.time/nonEmpty, self.lastVirFinish[queueNum])
-        
+        virStart = max(packet.time/ self.weightSum, self.lastVirFinish[queueNum])
         packet.virFinish =  virStart + packet.size/self.R[queueNum]
         self.lastVirFinish[queueNum] = packet.virFinish
 
-    def send():
-        queueNum = selectQueue()
+    def send(self):
+        queueNum = self.selectQueue()
         if queueNum == -1:
             print("Bad queue")
             exit()
-        packet = queues[queueNum].pop()
+        packet = self.queues[queueNum].pop(0)
+        self.currentPacketFinish = packet.size + self.time
+        self.metrics["sentBytes"] += packet.size
         return packet
 
-    def chooseQueue(packet):
+    def chooseQueue(self, packet):
         return packet.src
-
-
-
-
-
-
-transmission = [Packet() for _ in range(30)] # dummy transmission. replace with list of packets from dump
-print("Transmission:", transmission)
-while len(transmission) > 0:
-    receive(transmission.pop())
-
-def empty():
-    for x in range(N):
-        if(len(queues[x]) > 0):
-            return False
-    return True
-
-while not empty():
-    send()
-
-print(lastVirFinish)
+    
+    def numEmpty(self):
+        sum = 0
+        for x in range(self.N):
+            if (len(self.queues[x]) > 0):
+                sum += 1
+        return sum
+    def process(self, time):
+        self.updateR()
+        self.time = time
+        if(time < self.currentPacketFinish):
+            return 1
+        self.send()
+        return 0
