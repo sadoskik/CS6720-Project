@@ -6,7 +6,7 @@ import Packet
 class WFQ:
     def __init__(self):
         self.N = 4
-        self.maxQueueSize = 100000
+        self.maxQueueSize = 10000
         startTime = time.time()
         Packet.startTime = startTime
         Packet.ports = self.N
@@ -30,12 +30,12 @@ class WFQ:
 
     def receive(self, packet):
         queueNum = self.chooseQueue(packet)
+        self.metrics["receivedBytes"] += packet.size
         if(sum([x.size for x in self.queues[queueNum]]) + packet.size > self.maxQueueSize):
             self.metrics["droppedPackets"] += 1
             return
         self.queues[queueNum].append(packet)
         self.updateTime(packet, queueNum)
-        self.metrics["receivedBytes"] += packet.size
 
 
     def selectQueue(self):

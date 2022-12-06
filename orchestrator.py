@@ -12,11 +12,10 @@ def main():
         for x in range(4):
             total_packets[x] = [Packet.Packet(src = x) for _ in range(randint(200, 500))]
             Packet.Packet.startTime = 0
-        
-        last_packets = [total_packets[x][-1] for x in range(4)]
-        final_t = max(x.time + x.size for x in last_packets)
+        num_packets = sum([len(x) for x in total_packets])
         wfq = WFQ.WFQ()
-        for t in range(final_t):
+        t = 0
+        while sum([len(x) for x in total_packets]) != 0 or sum([len(x) for x in wfq.queues]) != 0 or t < wfq.currentPacketFinish:
             for packets in total_packets:
                 if len(packets) == 0:
                     continue
@@ -24,6 +23,7 @@ def main():
                 if curr_packet.time <= t:
                     wfq.receive(packets.pop(0))
             wfq.process(t)
+            t += 1
         print(wfq.metrics)
         
         
