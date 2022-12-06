@@ -78,5 +78,3 @@ while not empty():
 
 print(lastVirFinish)
 
-def process(trans):
-    
