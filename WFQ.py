@@ -6,12 +6,12 @@ import Packet
 class WFQ:
     def __init__(self):
         self.N = 4
-        self.maxQueueSize = 255
+        self.maxQueueSize = 100000
         startTime = time.time()
         Packet.startTime = startTime
         Packet.ports = self.N
         self.currentPacketFinish = 0
-        self.queues = []
+        self.queues = [[]] * 4
         self.lastVirFinish = [0,0,0,0]
         self.weights = [2,3,4,3]
         self.weightSum = sum(self.weights)
@@ -44,8 +44,8 @@ class WFQ:
         queueNum = -1
         while i < len(self.queues):
             queue = self.queues[i]
-            print("Queue:", i)
-            print(queue)
+            # print("Queue:", i)
+            # print(queue)
             if len(queue) != 0 and queue[0].virFinish < minVirFinish:
                 minVirFinish = queue[0].virFinish
                 queueNum = i
@@ -61,7 +61,7 @@ class WFQ:
         queueNum = self.selectQueue()
         if queueNum == -1:
             print("Bad queue")
-            exit()
+            return
         packet = self.queues[queueNum].pop(0)
         self.currentPacketFinish = packet.size + self.time
         self.metrics["sentBytes"] += packet.size
@@ -77,7 +77,6 @@ class WFQ:
                 sum += 1
         return sum
     def process(self, time):
-        self.updateR()
         self.time = time
         if(time < self.currentPacketFinish):
             return 1
