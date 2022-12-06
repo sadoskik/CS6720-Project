@@ -25,7 +25,7 @@ class WFQ:
             "droppedPackets": 0,
             "receivedBytes": 0,
             "sentBytes": 0,
-
+            "latency": 0
         }
 
     def receive(self, packet):
@@ -65,6 +65,7 @@ class WFQ:
         packet = self.queues[queueNum].pop(0)
         self.currentPacketFinish = packet.size + self.time
         self.metrics["sentBytes"] += packet.size
+        self.metrics["latency"] += self.time - packet.time
         return packet
 
     def chooseQueue(self, packet):
